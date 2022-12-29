@@ -45,44 +45,56 @@ def process_inbound_udp(sock):
     pkt, from_addr = sock.recvfrom(BUF_SIZE)
     Magic, Team, Type, hlen, plen, Seq, Ack = struct.unpack("HBBHHII", pkt[:HEADER_LEN])
     data = pkt[HEADER_LEN:]
+
+    # 收到WHO HAS packet
     if Type == 0:
         # received an WHOHAS pkt
-        # see what chunk the sender has
+        # 这里因为只需要一个chunk，所以直接拿前20个byte
         whohas_chunk_hash = data[:20]
-        # bytes to hex_str
+        # 将hash从16进制换成byte
         chunkhash_str = bytes.hex(whohas_chunk_hash)
         ex_sending_chunkhash = chunkhash_str
 
         print(f"whohas: {chunkhash_str}, has: {list(config.haschunks.keys())}")
+        # 在config.haschunks里面找本地是否有haschunks
         if chunkhash_str in config.haschunks:
-            # send back IHAVE pkt
-            ihave_header = struct.pack("HBBHHII", socket.htons(52305), 35, 1, socket.htons(HEADER_LEN),
-                                       socket.htons(HEADER_LEN + len(whohas_chunk_hash)), socket.htonl(0),
-                                       socket.htonl(0))
+            # 发回 IHAVE pkt
+            ihave_header = struct.pack("HBBHHII", socket.htons(52305), 35, 1,
+                                       socket.htons(HEADER_LEN), socket.htons(HEADER_LEN + len(whohas_chunk_hash)),
+                                       socket.htonl(0), socket.htonl(0))
             ihave_pkt = ihave_header + whohas_chunk_hash
             sock.sendto(ihave_pkt, from_addr)
 
+    # 收到GET packet
     elif Type == 2:
         # received a GET pkt
+        # 从本地config.haschunks中获得对应data
+        # 注意这里获得的是一部分的data而不是全部的data，一次发送的大小只有MAX_PAYLOAD
+        # 这里是因为发送的chuck较大，所以可以直接用MAX_PAYLOAD，否则可能会越界
         chunk_data = config.haschunks[ex_sending_chunkhash][:MAX_PAYLOAD]
 
-        # send back DATA
+        # 发送 DATA，注意需要sequence和ACK的值！
         data_header = struct.pack("HBBHHII", socket.htons(52305), 35, 3, socket.htons(HEADER_LEN),
                                   socket.htons(HEADER_LEN), socket.htonl(1), 0)
         sock.sendto(data_header + chunk_data, from_addr)
 
+    # 收到 ACK packet
     elif Type == 4:
         # received an ACK pkt
+        # 获取ACK的值
         ack_num = socket.ntohl(Ack)
+        # 用当前收到的个数 * 每个chunk的大小来判断是否发送完成
         if (ack_num) * MAX_PAYLOAD >= CHUNK_DATA_SIZE:
             # finished
             print(f"finished sending {ex_sending_chunkhash}")
             pass
         else:
+            # 没有完成的时候，判断下一次发送的数据范围
             left = (ack_num) * MAX_PAYLOAD
+            # 这里就对right进行了处理，防止越界
             right = min((ack_num + 1) * MAX_PAYLOAD, CHUNK_DATA_SIZE)
             next_data = config.haschunks[ex_sending_chunkhash][left: right]
-            # send next data
+            # 发送下一个data信息，同时注意ack和sequence
             data_header = struct.pack("HBBHHII", socket.htons(52305), 35, 3, socket.htons(HEADER_LEN),
                                       socket.htons(HEADER_LEN + len(next_data)), socket.htonl(ack_num + 1), 0)
             sock.sendto(data_header + next_data, from_addr)
@@ -105,6 +117,7 @@ def peer_run(config):
             ready = select.select([sock, sys.stdin], [], [], 0.1)
             read_ready = ready[0]
             if len(read_ready) > 0:
+                # 这里就只需要处理其他socket发来的消息
                 if sock in read_ready:
                     process_inbound_udp(sock)
                 if sys.stdin in read_ready:
