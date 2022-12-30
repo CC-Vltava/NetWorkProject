@@ -1,3 +1,5 @@
-2022-12-27 21:12:32,000 -+- PEER7_LOGGER -+- INFO -+- Start logging
-2022-12-27 21:12:32,000 -+- PEER7_LOGGER -+- INFO -+- Network simulator activated, running at ('127.0.0.1', 38306).
-2022-12-27 21:12:40,172 -+- PEER7_LOGGER -+- INFO -+- socket closed
+2022-12-30 21:41:20,781 -+- PEER7_LOGGER -+- INFO -+- Start logging
+2022-12-30 21:41:20,781 -+- PEER7_LOGGER -+- INFO -+- Network simulator activated, running at ('127.0.0.1', 32104).
+2022-12-30 21:41:22,240 -+- PEER7_LOGGER -+- DEBUG -+- Receiving a type0 pkt from ('127.0.0.1', 48001) via spiffy, seq0, ack0, pkt_len36
+2022-12-30 21:41:22,240 -+- PEER7_LOGGER -+- DEBUG -+- sending a type1 pkt to ('127.0.0.1', 48001) via spiffy, seq0, ack0, pkt_len16
+2022-12-30 21:41:29,553 -+- PEER7_LOGGER -+- INFO -+- socket closed

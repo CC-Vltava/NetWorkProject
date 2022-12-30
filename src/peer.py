@@ -26,6 +26,20 @@ config = None
 ex_output_file = None
 ex_received_chunk = dict()
 
+# 这个是下一次需要下载编号
+next_download_num = dict()
+RTT = dict()
+# 上一次发送RTT的时间
+previous_time = dict()
+congestion_window = dict()
+threshold = dict()
+# 当前发送的最小的包
+min_packet = dict()
+# 连续收到的相同的ack的个数
+num_of_same_ack = dict()
+# 判断当前是否符合重发要求
+resend_packet = dict()
+
 sending_dict = dict()
 receiving_dict = dict()
 chunk_peer_dict = dict()
@@ -51,6 +65,20 @@ def process_download(sock, chunkfile, outputfile):
     global ex_output_file
     global ex_received_chunk
 
+    # 这个是下一次需要下载编号
+    global next_download_num
+    global RTT
+    # 上一次发送RTT的时间
+    global previous_time
+    global congestion_window
+    global threshold
+    # 当前发送的最小的包
+    global min_packet
+    # 连续收到的相同的ack的个数
+    global num_of_same_ack
+    # 判断当前是否符合重发要求
+    global resend_packet
+
     global sending_dict
     global receiving_dict
     global chunk_peer_dict
@@ -71,6 +99,7 @@ def process_download(sock, chunkfile, outputfile):
             requset_num += 1
             index, datahash_str = line.strip().split(" ")
             ex_received_chunk[datahash_str] = bytes()
+
             chunk_peer_dict[datahash_str] = []
             # hex_str to bytes
             datahash = bytes.fromhex(datahash_str)
@@ -100,6 +129,20 @@ def process_inbound_udp(sock):
     global config
     global ex_output_file
     global ex_received_chunk
+    global next_download_num
+    # 这个是下一次需要下载编号
+    global next_download_num
+    global RTT
+    # 上一次发送RTT的时间
+    global previous_time
+    global congestion_window
+    global threshold
+    # 当前发送的最小的包
+    global min_packet
+    # 连续收到的相同的ack的个数
+    global num_of_same_ack
+    # 判断当前是否符合重发要求
+    global resend_packet
 
     global sending_dict
     global receiving_dict
@@ -163,64 +206,120 @@ def process_inbound_udp(sock):
         sock.sendto(data_header + chunk_data, from_addr)
 
     elif Type == 3:
-        # received a DATA pkt
-        ex_received_chunk[receiving_dict[from_addr]] += data
-        if socket.ntohl(Seq) == 1:
+        # 收到了对面传过来的一个data包
+        # 首先判断这个data包是否是当前需要收的包
+        # 如果是，收下来，然后发送ack
+        # 如果不是，发送ack
+
+        next_download = next_download_num[receiving_dict[from_addr]]
+        # 当前的包就是需要接受的包
+        if next_download == socket.ntohl(Seq):
+            ex_received_chunk[receiving_dict[from_addr]] += data
             del get_dict[from_addr]
-        # send back ACK
-        ack_pkt = struct.pack("HBBHHII", socket.htons(52305), 35, 4, socket.htons(HEADER_LEN), socket.htons(HEADER_LEN),
-                              0, Seq)
-        sock.sendto(ack_pkt, from_addr)
+            # send back ACK
+            ack_pkt = struct.pack("HBBHHII", socket.htons(52305), 35, 4, socket.htons(HEADER_LEN),
+                                  socket.htons(HEADER_LEN),
+                                  0, Seq)
+            sock.sendto(ack_pkt, from_addr)
 
-        # see if finished
-        if len(ex_received_chunk[receiving_dict[from_addr]]) == CHUNK_DATA_SIZE:
-            # finished downloading this chunkdata!
-            # dump your received chunk to file in dict form using pickle
+            # see if finished
+            if len(ex_received_chunk[receiving_dict[from_addr]]) == CHUNK_DATA_SIZE:
+                # finished downloading this chunkdata!
+                # dump your received chunk to file in dict form using pickle
 
-            # add to this peer's haschunk:
-            config.haschunks[receiving_dict[from_addr]] = ex_received_chunk[receiving_dict[from_addr]]
+                # add to this peer's haschunk:
+                config.haschunks[receiving_dict[from_addr]] = ex_received_chunk[receiving_dict[from_addr]]
 
-            # you need to print "GOT" when finished downloading all chunks in a DOWNLOAD file
-            print(f"GOT {ex_output_file}")
+                # you need to print "GOT" when finished downloading all chunks in a DOWNLOAD file
+                print(f"GOT {ex_output_file}")
 
-            # The following things are just for illustration, you do not need to print out in your design.
-            sha1 = hashlib.sha1()
-            sha1.update(ex_received_chunk[receiving_dict[from_addr]])
-            received_chunkhash_str = sha1.hexdigest()
-            print(f"Expected chunkhash: {receiving_dict[from_addr]}")
-            print(f"Received chunkhash: {received_chunkhash_str}")
-            success = receiving_dict[from_addr] == received_chunkhash_str
-            print(f"Successful received: {success}")
-            if success:
-                print("Congrats! You have completed the example!")
-                print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-                receive_num += 1
-                if (requset_num == receive_num):
-                    with open(ex_output_file, "wb") as wf:
-                        pickle.dump(ex_received_chunk, wf)
-            else:
-                print("Example fails. Please check the example files carefully.")
-            del receiving_dict[from_addr]
-            del request_plan[from_addr][0]
-            if len(request_plan[from_addr]) > 0:
-                get_chunk_hash = bytes.fromhex(request_plan[from_addr][0])
-                # send back GET pkt
-                get_header = struct.pack("HBBHHII", socket.htons(52305), 35, 2, socket.htons(HEADER_LEN),
-                                         socket.htons(HEADER_LEN + len(get_chunk_hash)), socket.htonl(0),
-                                         socket.htonl(0))
-                get_pkt = get_header + get_chunk_hash
-                receiving_dict[from_addr] = bytes.hex(get_chunk_hash)
-                sock.sendto(get_pkt, from_addr)
-                get_dict[from_addr] = (get_chunk_hash, time.time())
+                # The following things are just for illustration, you do not need to print out in your design.
+                sha1 = hashlib.sha1()
+                sha1.update(ex_received_chunk[receiving_dict[from_addr]])
+                received_chunkhash_str = sha1.hexdigest()
+                print(f"Expected chunkhash: {receiving_dict[from_addr]}")
+                print(f"Received chunkhash: {received_chunkhash_str}")
+                success = receiving_dict[from_addr] == received_chunkhash_str
+                print(f"Successful received: {success}")
+                if success:
+                    print("Congrats! You have completed the example!")
+                    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+                    receive_num += 1
+                    if (requset_num == receive_num):
+                        with open(ex_output_file, "wb") as wf:
+                            pickle.dump(ex_received_chunk, wf)
+                else:
+                    print("Example fails. Please check the example files carefully.")
+                del receiving_dict[from_addr]
+                del request_plan[from_addr][0]
+                if len(request_plan[from_addr]) > 0:
+                    get_chunk_hash = bytes.fromhex(request_plan[from_addr][0])
+                    # send back GET pkt
+                    get_header = struct.pack("HBBHHII", socket.htons(52305), 35, 2, socket.htons(HEADER_LEN),
+                                             socket.htons(HEADER_LEN + len(get_chunk_hash)), socket.htonl(0),
+                                             socket.htonl(0))
+                    get_pkt = get_header + get_chunk_hash
+                    receiving_dict[from_addr] = bytes.hex(get_chunk_hash)
+                    sock.sendto(get_pkt, from_addr)
+                    get_dict[from_addr] = (get_chunk_hash, time.time())
+        # 当前的包不是我们需要接受的包
+        # 我们就返回
+        else:
+            ack_pkt = struct.pack("HBBHHII", socket.htons(52305), 35, 4, socket.htons(HEADER_LEN),
+                                  socket.htons(HEADER_LEN),
+                                  0, socket.htons(next_download))
+            sock.sendto(ack_pkt, from_addr)
 
     elif Type == 4:
         # received an ACK pkt
+        def updateRTT(RTT, time):
+            return RTT
+
+        def send_data(ack_num):
+            left = (ack_num) * MAX_PAYLOAD
+            right = min((ack_num + 1) * MAX_PAYLOAD, CHUNK_DATA_SIZE)
+            next_data = config.haschunks[sending_dict[from_addr]][left: right]
+            # send next data
+            data_header = struct.pack("HBBHHII", socket.htons(52305), 35, 3, socket.htons(HEADER_LEN),
+                                      socket.htons(HEADER_LEN + len(next_data)), socket.htonl(ack_num + 1), 0)
+            sock.sendto(data_header + next_data, from_addr)
+
+        # 更新congestion window与RTT
+        def update():
+            # 更新RTT
+            RTT[peer] = updateRTT(RTT[peer], we_need_the_RTT)
+            # 记录上一个window的大小
+            previous_window = congestion_window[peer]
+            # 更新window
+            if congestion_window[peer] * 2 <= threshold[peer]:
+                congestion_window[peer] *= 2
+            else:
+                congestion_window[peer] += 1
+            # 因为window改变，所以发送新加入的packet
+            for i in range(congestion_window[peer] - previous_window):
+                next_packet = min_packet[peer] + 1 + i
+                if next_packet * MAX_PAYLOAD > CHUNK_DATA_SIZE:
+                    break
+                send_data(next_packet)
+
+        update()
+
         ack_num = socket.ntohl(Ack)
+
         if (ack_num) * MAX_PAYLOAD >= CHUNK_DATA_SIZE:
             # finished
             print(f"finished sending {sending_dict[from_addr]}")
             del sending_dict[from_addr]
             pass
+        # 如果ack + 1是当前发送最小的包
+        elif ack_num + 1 == min_packet[peer]:
+            num_of_same_ack[peer] += 1
+            if num_of_same_ack[peer] == 3
+                if resend_packet[peer]:
+                    resend_packet[peer] = False
+                    threshold[peer] = max(1, congestion_window[peer] / 2)
+                    congestion_window[peer] = 1
+                    send_data(min_packet[peer])
         else:
             left = (ack_num) * MAX_PAYLOAD
             right = min((ack_num + 1) * MAX_PAYLOAD, CHUNK_DATA_SIZE)
@@ -229,6 +328,9 @@ def process_inbound_udp(sock):
             data_header = struct.pack("HBBHHII", socket.htons(52305), 35, 3, socket.htons(HEADER_LEN),
                                       socket.htons(HEADER_LEN + len(next_data)), socket.htonl(ack_num + 1), 0)
             sock.sendto(data_header + next_data, from_addr)
+            num_of_same_ack[peer] = 0
+            resend_packet[peer] = True
+            previous_time[peer] = time.time()
 
 
 def process_user_input(sock):
@@ -242,6 +344,20 @@ def process_user_input(sock):
 def peer_run(config):
     global ex_output_file
     global ex_received_chunk
+
+    # 这个是下一次需要下载编号
+    global next_download_num
+    global RTT
+    # 上一次发送RTT的时间
+    global previous_time
+    global congestion_window
+    global threshold
+    # 当前发送的最小的包
+    global min_packet
+    # 连续收到的相同的ack的个数
+    global num_of_same_ack
+    # 判断当前是否符合重发要求
+    global resend_packet
 
     global sending_dict
     global receiving_dict
@@ -260,20 +376,50 @@ def peer_run(config):
 
     try:
         while True:
+            # 如果当前没有发送who has包
             if have_send_who_has is False:
+                # 如果设置了who has的时间，就代表准备发送who has的包
                 if who_has_start_time is not None:
+                    # 如果当前时间和who has发送包的时间大于2
                     if time.time() - who_has_start_time > 2:
+                        # 如果当前已经收到所有的response
                         if response_num_of_who_has == expect_response_num_of_who_has or num_of_resend_who_has >= max_resend_who_has:
+                            # 对所有的response进行配合
                             decide_request_plan(sock)
                             have_send_who_has = True
                         else:
+                            # 重新发送
                             resend_who_has(sock)
+
             if len(get_dict) != 0:
                 resend_get(sock)
+
+            # 检查RTT是否超时
+            def checkRTT():
+                for peer in request_plan:
+                    if len(request_plan[peer]) > 0:
+                        if time.time() - previous_time[peer] > RTT[peer]:
+                            previous_time[peer] = time.time()
+                            threshold[peer] = max(congestion_window[peer] / 2, 1)
+                            congestion_window[peer] = 1
+                            # 发送最小包
+                            ack_num = min_packet[peer]
+                            left = (ack_num) * MAX_PAYLOAD
+                            right = min((ack_num + 1) * MAX_PAYLOAD, CHUNK_DATA_SIZE)
+                            next_data = config.haschunks[sending_dict[from_addr]][left: right]
+                            # send next data
+                            data_header = struct.pack("HBBHHII", socket.htons(52305), 35, 3, socket.htons(HEADER_LEN),
+                                                      socket.htons(HEADER_LEN + len(next_data)),
+                                                      socket.htonl(ack_num + 1), 0)
+                            sock.sendto(data_header + next_data, from_addr)
+                return
+
+            checkRTT()
             ready = select.select([sock, sys.stdin], [], [], 0.1)
             read_ready = ready[0]
             if len(read_ready) > 0:
                 if sock in read_ready:
+                    # 收到回复了
                     process_inbound_udp(sock)
                 if sys.stdin in read_ready:
                     process_user_input(sock)
@@ -290,6 +436,20 @@ def decide_request_plan(sock):
     global config
     global ex_output_file
     global ex_received_chunk
+
+    # 这个是下一次需要下载编号
+    global next_download_num
+    global RTT
+    # 上一次发送RTT的时间
+    global previous_time
+    global congestion_window
+    global threshold
+    # 当前发送的最小的包
+    global min_packet
+    # 连续收到的相同的ack的个数
+    global num_of_same_ack
+    # 判断当前是否符合重发要求
+    global resend_packet
 
     global sending_dict
     global receiving_dict
@@ -317,8 +477,18 @@ def decide_request_plan(sock):
                 choice = peer
         if choice is not None:
             request_plan[choice].append(chunk)
+
+    # 到这里完成了所有的挑选，并向对方发送了一个GET请求
     for peer in request_plan:
         if len(request_plan[peer]) > 0:
+            next_download_num[peer] = 0
+            RTT[peer] = 1
+            previous_time[peer] = 0
+            congestion_window[peer] = 1
+            threshold[peer] = 1
+            min_packet[peer] = 0
+            num_of_same_ack[peer] = 0
+            resend_packet[peer] = True
             get_chunk_hash = bytes.fromhex(request_plan[peer][0])
             # send back GET pkt
             get_header = struct.pack("HBBHHII", socket.htons(52305), 35, 2, socket.htons(HEADER_LEN),
@@ -336,6 +506,20 @@ def resend_who_has(sock):
     global config
     global ex_output_file
     global ex_received_chunk
+
+    # 这个是下一次需要下载编号
+    global next_download_num
+    global RTT
+    # 上一次发送RTT的时间
+    global previous_time
+    global congestion_window
+    global threshold
+    # 当前发送的最小的包
+    global min_packet
+    # 连续收到的相同的ack的个数
+    global num_of_same_ack
+    # 判断当前是否符合重发要求
+    global resend_packet
 
     global sending_dict
     global receiving_dict
