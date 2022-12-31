@@ -82,4 +82,4 @@ def test_rdt(drop_session):
     sha1.update(download_fragment[target_hash])
     received_hash_str = sha1.hexdigest()
 
-    assert target_hash.strip() == received_hash_str.strip(), f"received data mismatch, expect hash: {target_hash}, actual: {received_hash_str}"
+    assert target_hash.strip() == received_hash_str.strip(), f"received data mismatch, expect hash: {target_hash}, actual: {received_hash_str}" 
