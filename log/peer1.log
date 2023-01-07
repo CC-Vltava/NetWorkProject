@@ -1,3 +1,34 @@
-2022-12-30 21:46:44,561 -+- PEER1_LOGGER -+- INFO -+- Start logging
-2022-12-30 21:46:44,561 -+- PEER1_LOGGER -+- WARNING -+- Simulator not set, using normal socket.
-2022-12-30 21:46:58,289 -+- PEER1_LOGGER -+- INFO -+- socket closed
+2023-01-08 00:19:00,897 -+- PEER1_LOGGER -+- INFO -+- Start logging
+2023-01-08 00:19:00,897 -+- PEER1_LOGGER -+- INFO -+- Network simulator activated, running at ('127.0.0.1', 40049).
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48003) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48004) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48005) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48006) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,893 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48007) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,896 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48003) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:06,896 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:06,896 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48005) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:06,896 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48004) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:06,896 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48006) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:08,969 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,970 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48003) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,970 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48004) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,971 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48005) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,971 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48006) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,971 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48007) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,973 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48004) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:08,974 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48003) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:08,975 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48005) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:08,975 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48006) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:08,975 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:08,975 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type1 pkt from ('127.0.0.1', 48007) via spiffy, seq0, ack0, pkt_len16
+2023-01-08 00:19:11,052 -+- PEER1_LOGGER -+- DEBUG -+- sending a type2 pkt to ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,054 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48002) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,054 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48003) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,055 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48004) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,055 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48005) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,055 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48006) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,055 -+- PEER1_LOGGER -+- DEBUG -+- sending a type0 pkt to ('127.0.0.1', 48007) via spiffy, seq0, ack0, pkt_len36
+2023-01-08 00:19:11,060 -+- PEER1_LOGGER -+- DEBUG -+- Receiving a type3 pkt from ('127.0.0.1', 48002) via spiffy, seq1, ack0, pkt_len1040
+2023-01-08 00:19:11,060 -+- PEER1_LOGGER -+- INFO -+- socket closed

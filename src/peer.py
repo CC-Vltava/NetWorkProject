@@ -464,6 +464,7 @@ def peer_run(config):
     else:
         pre_timeout_is_set = False
     try:
+        limit_time = 2
         while True:
             # 如果当前没有发送who has包
             if have_send_who_has is False:
@@ -479,6 +480,10 @@ def peer_run(config):
                         else:
                             # 重新发送
                             resend_who_has(sock)
+
+            if who_has_start_time is not None and time.time() - who_has_start_time > limit_time:
+                limit_time *= 2
+                resend_who_has(sock)
 
             # 检查get包是否都成功发送
             if len(get_dict) != 0:
